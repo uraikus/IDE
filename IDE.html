@@ -1,0 +1,411 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Code Editor</title>
+    <style>
+      * {
+	box-sizing: border-box;
+	transition: all .6s;
+      }
+      body {
+	background: #2e2e2e;
+	color: white;
+	margin: 0;
+      }
+      h1 {
+	text-align: center;
+	padding: 5px;
+	margin: 0;
+      }
+      .button {
+	display: inline-block;
+	margin: 3px;
+	padding: 3px;
+	cursor: pointer;
+	border-radius: 5px;
+	box-shadow: 0 0 4px black;
+	background-color: black;
+	color: white;
+      }
+      .button:hover {
+	background-color: white;
+	color: black;
+      }
+      .line {
+	counter-increment: line;
+	white-space: pre;
+	outline: none;
+      }
+      .line::before {
+	display: inline-block;
+	content: counter(line) ": ";
+	width: 30px;
+	background-color: black;
+	text-align: right;
+	margin-right: 3px;
+      }
+      .line:focus {
+	background-color: #6e6e6e;
+      }
+      #toolbar {
+	background-color: #1a1a1a;
+	display: flex;
+      }
+      #code, #file-picker, #console {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+      }
+      #code {
+	height: calc(100% - 30px);
+	font-family: monospace;
+	overflow: auto;
+      }
+      #console, #file-picker {
+	height: 0;
+	background-color: #171717;
+      }
+      #unread {
+	background-color: red;
+	border-radius: 50%;
+	padding: 2px;
+	display: none;
+	text-shadow: 0 0 3px black;
+	position: absolute;
+	font-size: x-small
+      }
+      #project-name {
+	font-size: large;
+	padding: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toolbar">
+      <div class="button" id="save-project" style="display: none;" onclick="gimme.saveProject()">Save Project</div>
+      <div class="button" id="export-project" style="display: none;" onclick="gimme.exportProject()">Export Project</div>
+      <div class="button" onclick="if (gimme.verifyActive()) this.nextElementSibling.click()">Load Project</div>
+      <input type="file" id="file" hidden onchange="gimme.startFileReader(this)" accept=".proj">
+      <div class="button" onclick="if (gimme.verifyActive()) gimme.newProject()">New Project</div>
+      <div class="button" onclick="gimme.showConsole()">Console <span id="unread"></span></div>
+      <div id="file-tools" style="display: none;">
+	<div class="button" onclick="gimme.newProjectFile()">New File</div>
+	<div class="button" onclick="gimme.openProjectFilePane()">Open File</div>
+	<div class="button" onclick="gimme.renameProjectFile()">Rename File</div>
+	<div class="button" onclick="gimme.preview()">Preview</div>
+	Current File: <span id="current-file"></span>
+      </div>
+      <div style="flex-grow: 1;"></div>
+      <div id="project-name" oninput="if (this.innerText) project.name = this.innerText"></div>
+    </div>
+    <div id="code" spellcheck=false></div>
+    <div id="file-picker"></div>
+    <div id="console"><h1>Console <div class="button" onclick="gimme.closeConsole()">Close</div></h1></div>
+
+    <script>
+      (function(){
+      	window.project = {}
+	addEventListener('error', errorHandler)
+	addEventListener('message', e => {errorHandler(e.data)})
+
+	window.onkeydown = ev => {
+	  if (/^s$/i.test(ev.key) && ev.ctrlKey) {
+	    ev.preventDefault()
+	    if (!project.loaded) return false
+	    saveProject()
+	  } else if (/^o$/i.test(ev.key) && ev.ctrlKey) {
+	    ev.preventDefault()
+	    if (verifyActive()) document.querySelector('input[type="file"]').click()
+	  } else if (/^n$/i.test(ev.key) && ev.ctrlKey) {
+	    ev.preventDefault()
+	    if (verifyActive()) newProject()
+	  }
+	}
+	window.gimme = {startFileReader, showConsole, closeConsole, verifyActive, newProject, saveProject, newProjectFile, openProjectFilePane, renameProjectFile, exportProject, preview}	
+
+	function verifyActive() {
+ 	  return !project.loaded || confirm('Are you sure you want to close you current project?')
+	}
+	function errorHandler(ev) {
+	  let unread = document.getElementById('unread')
+	  unread.innerText = parseInt(unread.innerText || 0) + 1
+	  let text = ev.lineno + ':' + ev.colno + '; ' + ev.message
+	  unread.style.display = 'inline-block'
+	  document.getElementById('console').append(text, document.createElement('br'))
+        }
+
+	function startFileReader(input) {
+	  if (!input.files || !input.files[0]) throw new Error('No file loaded.')
+	  let reader = new FileReader()
+	  reader.onload = () => processFile(reader.result)
+	  reader.readAsText(input.files[0])
+	}
+
+        function processFile(text) {
+	  let json = JSON.parse(text)
+	  loadProject(json)
+	}
+
+	function newProject() {
+	  let name = prompt('Project Name:', '')
+	  if (!name) return false
+	  loadProject({
+	    loaded: true,
+	    name: name,
+	    openedFile: 'index.html',
+	    files: {'index.html': [
+	      '<!doctype html>',
+	      '<html>',
+	      '  <head>',
+	      '    <title>' + name + '</title>',
+	      '    <meta http-equiv="X-UA-Compatible" content="IE=edge">',
+	      '    <meta charset="UTF-8">',
+	      '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+	      '    <style file="design.css"></style>',
+	      '    <script file="start.js"></' + 'script>',
+	      '  </head>',
+	      '  <body file="body.html"></body>',
+	      '</html>'
+	    ],
+	    'design.css': [
+	      '* {', '  box-sizing: border-box;','  transition: all .6s;', '}'
+	    ],
+	    'start.js': [
+	      "addEventListener('error', e => {if (opener) opener.postMessage({lineno: e.lineno, colno: e.colno, message: e.message}, '*')})", "addEventListener('load', load)", '', 'function load() {', '  ', '}'
+	    ],
+	    'body.html': [
+	      '<h1>Hello World!</h1>'
+	    ]}
+	  })
+	}
+
+	function saveProject() {
+	  let blob = new Blob([JSON.stringify(project)], {type: 'text/json'})
+	  let href = URL.createObjectURL(blob)
+	  let a = document.createElement('a')
+	  a.href = href
+	  a.download = project.name + '.proj'
+	  a.click()
+	}
+
+	function exportProject() {
+	  let a = document.createElement('a')
+	  a.href = compile()
+	  a.download = project.name + '.html'
+	  a.click()
+	}
+
+	function loadProject(p) {
+	  project = p
+	  let pn = document.getElementById('project-name')
+	  pn.innerText = p.name
+	  pn.contentEditable = true
+	  if (p.openedFile) openProjectFile(p.openedFile)
+	  document.getElementById('save-project').style.display = ''
+	  document.getElementById('export-project').style.display = ''
+	  document.getElementById('file-tools').style.display = ''
+	}
+
+	function openProjectFile(fileName) {
+	  let code = document.getElementById('code')
+	  project.openedFile = fileName
+	  document.getElementById('current-file').innerHTML = fileName
+	  code.innerText = ''
+	  code.append(...project.files[fileName].map(addLine))
+	}
+
+	function openProjectFilePane() {
+	  let fp = document.getElementById('file-picker')
+	  fp.style.height = 'calc(100% - 30px)'
+	  fp.innerHTML = '<h1>Files <div class="button" onclick="this.parentElement.parentElement.style.height = \'\'">Close</div></h1>'
+	  Object.keys(project.files).sort().forEach(file => {
+	    let div = document.createElement('div')
+	    div.innerText = file
+	    div.onclick = () => {openProjectFile(file); fp.style.height = '';}
+	    fp.append(div)
+	  })
+	}
+
+	function newProjectFile() {
+	  let name = prompt('File name:', '')
+	  if (!name) return false
+	  if (project.files[name]) throw 'File name is invalid or it already exists.'
+	  project.files[name] = ['']
+	  openProjectFile(name)
+	}
+
+	function renameProjectFile() {
+	  let newName = prompt('Enter new name for file:', project.openedFile)
+	  if (!newName) return false
+	  if (newName === project.openedFile) return false
+	  if (project.files[newName]) throw 'Invalid file name...'
+	  project.files[newName] = project.files[project.openedFile]
+	  delete project.files[project.openedFile]
+	  openProjectFile(newName)
+	}
+
+	function showConsole() {
+	  document.getElementById('console').style.height = 'calc(100% - 30px)'
+	  let unread = document.getElementById('unread')
+	  unread.style.display = ''
+	  unread.innerText = ''
+	}
+
+	function closeConsole() {
+	  document.getElementById('console').style.height = ''
+	}
+
+	function addLine(text) {
+	  let code = document.getElementById('code')
+	  let div = document.createElement('div')
+	  div.className = 'line'
+	  div.innerText = text
+	  div.addEventListener('keydown', ev => editLine(ev, div))
+	  div.addEventListener('input', () => {saveLine(div); redrawLine(div);})
+	  div.addEventListener('paste', pasteLine)
+	  div.getIndex = () => Array.from(code.children).indexOf(div)
+	  div.contentEditable = true
+	  redrawLine(div)
+	  return div
+	}
+
+	function editLine(ev, line) {
+	  let code = document.getElementById('code')
+	  let sel = getSelection()
+	  if (/^tab$/i.test(ev.key)) {
+	    ev.preventDefault()
+	    if (ev.shiftKey) line.firstChild.textContent = line.firstChild.textContent.replace(/^  /, '')
+	    else if (line.firstChild) line.insertBefore(document.createTextNode('  '), line.firstChild)
+	    else line.append('  ')
+	    saveLine(line)
+	  }
+	  if (/^(enter|return)$/i.test(ev.key)) {
+	    ev.preventDefault()
+	    let index = Array.from(document.querySelectorAll('#code .line')).indexOf(line)
+	    let clone = addLine('')
+	    if (line.nextElementSibling) code.insertBefore(clone, line.nextElementSibling)
+	    else code.append(clone)
+	    let r = sel.getRangeAt(0)
+	    r.deleteContents()
+	    let blankNode = document.createElement('span')
+	    r.insertNode(blankNode)
+	    let contents
+	    if (blankNode.nextSibling) {
+	    	r.setStartAfter(blankNode)
+		r.setEndAfter(blankNode.nextSibling)
+		contents = r.extractContents()
+		saveLine(line)
+	    }
+	    blankNode.remove()
+	    let query = line.innerText.match(/^ +/)
+	    clone.focus()
+	    if (query) {
+	      clone.innerText = query[0]
+	      sel.modify('move', 'right', 'word')
+	    }
+	    if (contents) clone.append(contents)
+	    project.files[project.openedFile].splice(index, 0, clone.innerText)
+	  } else if (/^backspace$/i.test(ev.key)) {
+	    if ((!line.innerText.length || sel.focusNode === line.firstChild && !sel.anchorOffset) && line.getIndex()) {
+	      ev.preventDefault()
+	      let r = document.createRange()
+	      r.selectNodeContents(line.previousElementSibling)
+	      sel.removeAllRanges()
+	      sel.addRange(r)
+	      sel.collapseToEnd()
+	      if (line.innerText.length) {
+		line.previousElementSibling.append(line.innerText)
+		saveLine(line.previousElementSibling)
+	      }
+	      deleteLine(line)
+	    }
+	  }
+	}
+
+	function saveLine(line) {
+	  let index = line.getIndex()
+	  if (index !== -1) project.files[project.openedFile][index] = line.innerText
+	}
+
+	function deleteLine(line) {
+	  let index = line.getIndex()
+	  line.remove()
+	  if (index !== -1) project.files[project.openedFile].splice(index, 1)
+	}
+
+	function pasteLine(ev) {
+	  ev.preventDefault()
+	  let code = document.getElementById('code')
+	  let paste = (ev.clipboardData || window.clipboardData).getData('text')
+	  let rows = paste.replace(/\t/g, '  ').split(/\r?\n/g)
+	  let r = getSelection().getRangeAt(0)
+	  r.deleteContents()
+	  r.insertNode(document.createTextNode(rows[0]))
+	  let nes = ev.target.nextElementSibling
+	  for (let x = 1; x < rows.length; x++) {
+	    let newRow = addLine(rows[x])
+	    if (nes) code.insertBefore(newRow, nes)
+	    else code.append(newRow)
+	  }
+	  saveAllLines()
+	}
+
+	function redrawLine(line) {
+	  /*
+	  applyColor(line, '#05cbe6', /[<][^>]+[>]/g)
+	  applyColor(line, 'green', /"[^"]+"/g)
+	  */
+	}
+
+	function applyColor(line, color, regex) {
+	  let query = line.innerText.match(regex)
+	  if (query) {
+	   let r = document.createRange() 
+	   for (let x = 0; x < query.length; x++) {
+	     r.setStart(line, line.innerText.search(query[x]))
+	     r.setEnd(line, query[x].length)
+	     let span = document.createElement('span')
+	     span.style.color = color
+	     r.surroundContents(span)
+	   }
+	  }
+	  return text
+	}
+
+	function saveAllLines() {
+	  let lines = document.querySelectorAll('#code .line')
+	  let arr = []
+	  for (let x = 0; x < lines.length; x++) {
+	    arr.push(lines[x].innerText)
+	  }
+	  project.files[project.openedFile] = arr
+	}
+
+	function insertBeforeCursor(text) {
+	  let r = getSelection().getRangeAt(0)
+	  let node = document.createTextNode(text)
+	  r.insertNode(node)
+	  r.setStartAfter(node)
+	  r.setEndAfter(node)
+	}
+
+	function compile() {
+	  let doc = new DOMParser().parseFromString(project.files['index.html'].map(r => r.replace(/^ +/, '')).join('\n'), 'text/html')
+	  let res = doc.querySelectorAll('[file]')
+	  for (let x = 0; x < res.length; x++) {
+	    if (project.files[res[x].getAttribute('file')]) {
+	      res[x].innerHTML = project.files[res[x].getAttribute('file')].map(r => r.replace(/^ +/, '')).join('\n')
+	    }
+	  }
+	  let str = '<!doctype html>\n' + doc.documentElement.outerHTML
+	  return URL.createObjectURL(new Blob([str], {type: 'text/html'}))
+	}
+
+	function preview() {
+	  window.open(compile(), 'preview')
+	}
+      })()
+    </script>
+  </body>
+</html>
