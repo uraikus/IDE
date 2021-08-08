@@ -33,8 +33,8 @@
       }
       .line {
 	counter-increment: line;
-	white-space: pre;
 	outline: none;
+	padding: 0;
       }
       .line::before {
 	display: inline-block;
@@ -44,26 +44,53 @@
 	text-align: right;
 	margin-right: 3px;
       }
-      .line:focus {
+      .line[data-highlight] {
 	background-color: #6e6e6e;
       }
       #toolbar {
 	background-color: #1a1a1a;
 	display: flex;
+	height: 30px;
       }
-      #code, #file-picker, #console {
+      #file-tools, #project-controls {
+	background-color: #1a1a1a;
+	width: 125px;
+	overflow: hidden;
+	height: 25px;
+	text-align: center;
+	padding-top: 5px;
+	border-radius: 5px;
+	z-index: 1;
+      }
+      #file-tools .button, #project-controls .button {
+	display: block;
+      }
+      #code, #file-picker, #console, #code-edit {
 	position: fixed;
 	left: 0;
-	right: 0;
+	width: 100%;
 	bottom: 0;
+	overflow: auto;
       }
-      #code {
+      #code, #code-edit {
 	height: calc(100% - 30px);
 	font-family: monospace;
-	overflow: auto;
+	white-space: pre;
+	font-size: 12px;
+	outline: none;
+      }
+      #code {
+	overflow: hidden;
+      }
+      #code-edit {
+	color: rgb(0, 0, 0, 0);
+	caret-color: white;
+	background: none;
+	padding: 0 0 0 33px;
       }
       #console, #file-picker {
 	height: 0;
+	z-index: 2;
 	background-color: #171717;
       }
       #unread {
@@ -83,31 +110,42 @@
   </head>
   <body>
     <div id="toolbar">
-      <div class="button" id="save-project" style="display: none;" onclick="gimme.saveProject()">Save Project</div>
-      <div class="button" id="export-project" style="display: none;" onclick="gimme.exportProject()">Export Project</div>
-      <div class="button" onclick="if (gimme.verifyActive()) this.nextElementSibling.click()">Load Project</div>
-      <input type="file" id="file" hidden onchange="gimme.startFileReader(this)" accept=".proj">
-      <div class="button" onclick="if (gimme.verifyActive()) gimme.newProject()">New Project</div>
-      <div class="button" onclick="gimme.showConsole()">Console <span id="unread"></span></div>
+      <div id="project-controls">
+	Project...
+        <div class="button" id="save-project" style="display: none;" onclick="gimme.saveProject()">Save Project</div>
+        <div class="button" id="export-project" style="display: none;" onclick="gimme.exportProject()">Export Project</div>
+        <div class="button" onclick="if (gimme.verifyActive()) this.nextElementSibling.click()">Load Project</div>
+        <input type="file" id="file" hidden onchange="gimme.startFileReader(this)" accept=".proj">
+        <div class="button" onclick="if (gimme.verifyActive()) gimme.newProject()">New Project</div>
+      </div>
       <div id="file-tools" style="display: none;">
+	Files...
 	<div class="button" onclick="gimme.newProjectFile()">New File</div>
 	<div class="button" onclick="gimme.openProjectFilePane()">Open File</div>
-	<div class="button" onclick="gimme.renameProjectFile()">Rename File</div>
-	<div class="button" onclick="gimme.preview()">Preview</div>
-	Current File: <span id="current-file"></span>
+	<div class="button" id="rename-file" onclick="gimme.renameProjectFile()">Rename File</div>
+	<div class="button" id="delete-file" onclick="gimme.deleteProjectFile()">Delete File</div>
       </div>
+      <div class="button" onclick="gimme.showConsole()">Console<span id="unread"></span></div>
+      <div class="button" id="preview-button" style="display: none" onclick="gimme.preview()">Preview</div>
+      <div style="padding: 6px 0 0 5px;">Current File: <span id="current-file"></span></div>
       <div style="flex-grow: 1;"></div>
       <div id="project-name" oninput="if (this.innerText) project.name = this.innerText"></div>
     </div>
-    <div id="code" spellcheck=false></div>
+    <div id="code"></div>
+    <textarea id="code-edit" spellcheck=false readonly></textarea>
     <div id="file-picker"></div>
     <div id="console"><h1>Console <div class="button" onclick="gimme.closeConsole()">Close</div></h1></div>
 
     <script>
       (function(){
+	// interface.js
+
       	window.project = {}
 	addEventListener('error', errorHandler)
 	addEventListener('message', e => {errorHandler(e.data)})
+        addEventListener('load', load)
+	var codeEdit = document.getElementById('code-edit')
+	var code = document.getElementById('code')
 
 	window.onkeydown = ev => {
 	  if (/^s$/i.test(ev.key) && ev.ctrlKey) {
@@ -122,7 +160,15 @@
 	    if (verifyActive()) newProject()
 	  }
 	}
-	window.gimme = {startFileReader, showConsole, closeConsole, verifyActive, newProject, saveProject, newProjectFile, openProjectFilePane, renameProjectFile, exportProject, preview}	
+	window.gimme = {startFileReader, showConsole, closeConsole, verifyActive, newProject, saveProject, newProjectFile, openProjectFilePane, renameProjectFile, deleteProjectFile, exportProject, preview}
+
+	function load() {
+	  let dropDowns = document.querySelectorAll('#file-tools, #project-controls')
+	  for (let x = 0; x < dropDowns.length; x++) {
+	    dropDowns[x].onmouseenter = () => dropDowns[x].style.height = dropDowns[x].scrollHeight + 'px'
+	    dropDowns[x].onmouseleave = () => dropDowns[x].style.height = ''
+	  }
+	}
 
 	function verifyActive() {
  	  return !project.loaded || confirm('Are you sure you want to close you current project?')
@@ -146,6 +192,43 @@
 	  let json = JSON.parse(text)
 	  loadProject(json)
 	}
+
+	function showConsole() {
+	  document.getElementById('console').style.height = '100%'
+	  let unread = document.getElementById('unread')
+	  unread.style.display = ''
+	  unread.innerText = ''
+	}
+
+	function closeConsole() {
+	  document.getElementById('console').style.height = ''
+	}
+
+	function compile() {
+	  let doc = new DOMParser().parseFromString(project.files['index.html'].map(r => r.replace(/^ +/, '')).join('\n'), 'text/html')
+	  let str = ''
+	  compileElements(doc)
+
+	  function compileElements(elem) {
+	    let res = elem.querySelectorAll('[file]')
+	    for (let x = 0; x < res.length; x++) {
+	      let fileName = res[x].getAttribute('file')
+	      if (project.files[fileName]) {
+	        res[x].innerHTML = project.files[res[x].getAttribute('file')].join('\n')
+		if (/.html$/.test(fileName)) compileElements(res[x])
+	      }
+	    }
+	    str = '<!doctype html>\n' + doc.documentElement.outerHTML.replace(/\n+/g, '\n').replace(/^ +/, '')
+	  }
+	  return URL.createObjectURL(new Blob([str], {type: 'text/html'}))
+	}
+
+	function preview() {
+	  let url = compile()
+	  window.open(url, 'preview')
+	}
+
+	// project.js
 
 	function newProject() {
 	  let name = prompt('Project Name:', '')
@@ -197,27 +280,21 @@
 	}
 
 	function loadProject(p) {
+	  if (!project.loaded) initializeEditor()
 	  project = p
 	  let pn = document.getElementById('project-name')
 	  pn.innerText = p.name
 	  pn.contentEditable = true
-	  if (p.openedFile) openProjectFile(p.openedFile)
+	  openProjectFile(p.openedFile)
 	  document.getElementById('save-project').style.display = ''
 	  document.getElementById('export-project').style.display = ''
+	  document.getElementById('preview-button').style.display = ''
 	  document.getElementById('file-tools').style.display = ''
-	}
-
-	function openProjectFile(fileName) {
-	  let code = document.getElementById('code')
-	  project.openedFile = fileName
-	  document.getElementById('current-file').innerHTML = fileName
-	  code.innerText = ''
-	  code.append(...project.files[fileName].map(addLine))
 	}
 
 	function openProjectFilePane() {
 	  let fp = document.getElementById('file-picker')
-	  fp.style.height = 'calc(100% - 30px)'
+	  fp.style.height = '100%'
 	  fp.innerHTML = '<h1>Files <div class="button" onclick="this.parentElement.parentElement.style.height = \'\'">Close</div></h1>'
 	  Object.keys(project.files).sort().forEach(file => {
 	    let div = document.createElement('div')
@@ -225,6 +302,15 @@
 	    div.onclick = () => {openProjectFile(file); fp.style.height = '';}
 	    fp.append(div)
 	  })
+	}
+
+	function openProjectFile(fileName) {
+	  project.openedFile = fileName
+	  document.getElementById('current-file').innerText = fileName
+	  document.getElementById('rename-file').style.display = 'index.html' === fileName ? 'none' : ''
+	  document.getElementById('delete-file').style.display = 'index.html' === fileName ? 'none' : ''
+	  document.getElementById('code-edit').value = project.files[fileName].join('\r\n')
+	  refreshCode()
 	}
 
 	function newProjectFile() {
@@ -245,165 +331,123 @@
 	  openProjectFile(newName)
 	}
 
-	function showConsole() {
-	  document.getElementById('console').style.height = 'calc(100% - 30px)'
-	  let unread = document.getElementById('unread')
-	  unread.style.display = ''
-	  unread.innerText = ''
-	}
-
-	function closeConsole() {
-	  document.getElementById('console').style.height = ''
-	}
-
-	function addLine(text) {
-	  let code = document.getElementById('code')
-	  let div = document.createElement('div')
-	  div.className = 'line'
-	  div.innerText = text
-	  div.addEventListener('keydown', ev => editLine(ev, div))
-	  div.addEventListener('input', () => {saveLine(div); redrawLine(div);})
-	  div.addEventListener('paste', pasteLine)
-	  div.getIndex = () => Array.from(code.children).indexOf(div)
-	  div.contentEditable = true
-	  redrawLine(div)
-	  return div
-	}
-
-	function editLine(ev, line) {
-	  let code = document.getElementById('code')
-	  let sel = getSelection()
-	  if (/^tab$/i.test(ev.key)) {
-	    ev.preventDefault()
-	    if (ev.shiftKey) line.firstChild.textContent = line.firstChild.textContent.replace(/^  /, '')
-	    else if (line.firstChild) line.insertBefore(document.createTextNode('  '), line.firstChild)
-	    else line.append('  ')
-	    saveLine(line)
-	  }
-	  if (/^(enter|return)$/i.test(ev.key)) {
-	    ev.preventDefault()
-	    let index = Array.from(document.querySelectorAll('#code .line')).indexOf(line)
-	    let clone = addLine('')
-	    if (line.nextElementSibling) code.insertBefore(clone, line.nextElementSibling)
-	    else code.append(clone)
-	    let r = sel.getRangeAt(0)
-	    r.deleteContents()
-	    let blankNode = document.createElement('span')
-	    r.insertNode(blankNode)
-	    let contents
-	    if (blankNode.nextSibling) {
-	    	r.setStartAfter(blankNode)
-		r.setEndAfter(blankNode.nextSibling)
-		contents = r.extractContents()
-		saveLine(line)
-	    }
-	    blankNode.remove()
-	    let query = line.innerText.match(/^ +/)
-	    clone.focus()
-	    if (query) {
-	      clone.innerText = query[0]
-	      sel.modify('move', 'right', 'word')
-	    }
-	    if (contents) clone.append(contents)
-	    project.files[project.openedFile].splice(index, 0, clone.innerText)
-	  } else if (/^backspace$/i.test(ev.key)) {
-	    if ((!line.innerText.length || sel.focusNode === line.firstChild && !sel.anchorOffset) && line.getIndex()) {
-	      ev.preventDefault()
-	      let r = document.createRange()
-	      r.selectNodeContents(line.previousElementSibling)
-	      sel.removeAllRanges()
-	      sel.addRange(r)
-	      sel.collapseToEnd()
-	      if (line.innerText.length) {
-		line.previousElementSibling.append(line.innerText)
-		saveLine(line.previousElementSibling)
-	      }
-	      deleteLine(line)
-	    }
+	function deleteProjectFile() {
+	  let file = project.openedFile
+	  if (confirm(`Are you sure you want to delete "${file}"?`)) {
+	    delete project.files[file]
+	    openProjectFile('index.html')
 	  }
 	}
 
-	function saveLine(line) {
-	  let index = line.getIndex()
-	  if (index !== -1) project.files[project.openedFile][index] = line.innerText
+	// editor.js
+
+	function initializeEditor() {
+	  codeEdit.readOnly = false
+	  codeEdit.addEventListener('scroll', scrollEditor)
+	  codeEdit.addEventListener('keydown', keyDown)
+	  codeEdit.addEventListener('keyup', keyUp)
+	  codeEdit.addEventListener('paste', editorPaste)
+	  codeEdit.addEventListener('mouseup', () => highlightCurrentLine())
 	}
 
-	function deleteLine(line) {
-	  let index = line.getIndex()
-	  line.remove()
-	  if (index !== -1) project.files[project.openedFile].splice(index, 1)
+	function scrollEditor() {
+	  code.scrollTop = codeEdit.scrollTop
 	}
 
-	function pasteLine(ev) {
+	function keyDown(ev) {
+	  if (/^tab$/i.test(ev.key)) tabKey(ev)
+	}
+
+	function keyUp(ev) {
+	  if (/^(enter|return)$/i.test(ev.key)) {enterKey(ev); highlightCurrentLine()}
+	  else if (/^backspace$/i.test(ev.key)) {backspaceKey(ev); highlightCurrentLine()}
+	  else if (/^delete$/i.test(ev.key)) {deleteKey(ev); highlightCurrentLine()}
+	  else refreshCurrentLine(ev)
+	}
+
+	function tabKey(ev) {
 	  ev.preventDefault()
-	  let code = document.getElementById('code')
-	  let paste = (ev.clipboardData || window.clipboardData).getData('text')
-	  let rows = paste.replace(/\t/g, '  ').split(/\r?\n/g)
-	  let r = getSelection().getRangeAt(0)
-	  r.deleteContents()
-	  r.insertNode(document.createTextNode(rows[0]))
-	  let nes = ev.target.nextElementSibling
-	  for (let x = 1; x < rows.length; x++) {
-	    let newRow = addLine(rows[x])
-	    if (nes) code.insertBefore(newRow, nes)
-	    else code.append(newRow)
+	  let line = getCurrentLine()
+	  let text = codeEdit.value
+	  if (ev.shiftKey) {
+	    codeEdit.value = text.substring(0, line.start) + line.text.replace(/^  /, '') + text.substring(line.end, text.length)
+	    codeEdit.selectionStart = codeEdit.selectionEnd = line.caret - 2
+	    refreshCurrentLine()
+	  } else {
+	    codeEdit.value = text.substring(0, line.start) + '  ' + text.substring(line.start, text.length)
+	    codeEdit.selectionStart = codeEdit.selectionEnd = line.caret + 2
+	    refreshCurrentLine()
+	  }
+	}
+
+	function enterKey(ev) {
+	  let line = getCurrentLine()
+	  let text = codeEdit.value
+	  let query = project.files[project.openedFile][line.index - 1].match('^ +')
+	  if (query) {
+	    codeEdit.value = text.substring(0, line.start) + query[0] + text.substring(line.start, text.length)
+	    codeEdit.selectionStart = codeEdit.selectionEnd = line.start + query[0].length
 	  }
 	  saveAllLines()
 	}
 
-	function redrawLine(line) {
-	  /*
-	  applyColor(line, '#05cbe6', /[<][^>]+[>]/g)
-	  applyColor(line, 'green', /"[^"]+"/g)
-	  */
+	function backspaceKey(ev) {
+	  saveAllLines()
 	}
 
-	function applyColor(line, color, regex) {
-	  let query = line.innerText.match(regex)
-	  if (query) {
-	   let r = document.createRange() 
-	   for (let x = 0; x < query.length; x++) {
-	     r.setStart(line, line.innerText.search(query[x]))
-	     r.setEnd(line, query[x].length)
-	     let span = document.createElement('span')
-	     span.style.color = color
-	     r.surroundContents(span)
-	   }
+	function deleteKey(ev) {
+	  saveAllLines()
+	}
+
+	function editorPaste(ev) {
+	  codeEdit.value = codeEdit.value.replace(/\t/g, '  ')
+	  saveAllLines()
+	}
+
+	function refreshCode() {
+	  code.innerText = ''
+	  code.append(...project.files[project.openedFile].map(addLine))
+	}
+
+	function getCurrentLine() {
+	  let caret = codeEdit.selectionStart
+	  let text = codeEdit.value.split(/\r?\n/g)
+	  let map = text.map(r => r.length)
+	  let lineStart, counter = 0
+	  for (let x = 0; x < map.length; x++) {
+	    lineStart = counter
+	    lineEnd = lineStart + map[x] + 1
+	    if (caret >= lineStart && caret < lineEnd) {
+	  	return {start: lineStart, end: lineEnd, caret: caret, index: x, text: codeEdit.value.substring(lineStart, lineEnd)}
+	    }
+	    counter = lineEnd
 	  }
-	  return text
+	  throw `Caret could not be found: caret: ${caret}, counter: ${counter}`
+	}
+
+	function refreshCurrentLine() {
+	  let line = getCurrentLine()
+	  code.children[line.index].innerText = project.files[project.openedFile][line.index] = line.text
+	  highlightCurrentLine(line)
+	}
+
+	function highlightCurrentLine(line) {
+	  line = line || getCurrentLine()
+	  let prev = document.querySelector('.line[data-highlight]')
+	  if (prev) delete prev.dataset.highlight
+	  code.children[line.index].dataset.highlight = true
+	}
+
+	function addLine(text, index) {
+	  let div = document.createElement('div')
+	  div.className = 'line'
+	  div.innerText = text
+	  return div
 	}
 
 	function saveAllLines() {
-	  let lines = document.querySelectorAll('#code .line')
-	  let arr = []
-	  for (let x = 0; x < lines.length; x++) {
-	    arr.push(lines[x].innerText)
-	  }
-	  project.files[project.openedFile] = arr
-	}
-
-	function insertBeforeCursor(text) {
-	  let r = getSelection().getRangeAt(0)
-	  let node = document.createTextNode(text)
-	  r.insertNode(node)
-	  r.setStartAfter(node)
-	  r.setEndAfter(node)
-	}
-
-	function compile() {
-	  let doc = new DOMParser().parseFromString(project.files['index.html'].map(r => r.replace(/^ +/, '')).join('\n'), 'text/html')
-	  let res = doc.querySelectorAll('[file]')
-	  for (let x = 0; x < res.length; x++) {
-	    if (project.files[res[x].getAttribute('file')]) {
-	      res[x].innerHTML = project.files[res[x].getAttribute('file')].map(r => r.replace(/^ +/, '')).join('\n')
-	    }
-	  }
-	  let str = '<!doctype html>\n' + doc.documentElement.outerHTML
-	  return URL.createObjectURL(new Blob([str], {type: 'text/html'}))
-	}
-
-	function preview() {
-	  window.open(compile(), 'preview')
+	  project.files[project.openedFile] = codeEdit.value.split(/\r?\n/g)
+	  refreshCode()
 	}
       })()
     </script>
