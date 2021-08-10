@@ -72,7 +72,7 @@
 	bottom: 0;
 	overflow: auto;
       }
-      #code, #code-edit {
+      #code, #code-edit, div.code {
 	height: calc(100% - 30px);
 	font-family: monospace;
 	white-space: pre;
@@ -87,6 +87,7 @@
 	caret-color: white;
 	background: none;
 	padding: 0 0 0 33px;
+	resize: none;
       }
       #console, #file-picker {
 	height: 0;
@@ -309,7 +310,7 @@
 	  document.getElementById('current-file').innerText = fileName
 	  document.getElementById('rename-file').style.display = 'index.html' === fileName ? 'none' : ''
 	  document.getElementById('delete-file').style.display = 'index.html' === fileName ? 'none' : ''
-	  document.getElementById('code-edit').value = project.files[fileName].join('\r\n')
+	  document.getElementById('code-edit').value = project.files[fileName].join('\r\n').replace(/\t/g, '  ')
 	  refreshCode()
 	}
 
@@ -348,6 +349,7 @@
 	  codeEdit.addEventListener('keyup', keyUp)
 	  codeEdit.addEventListener('paste', editorPaste)
 	  codeEdit.addEventListener('mouseup', () => highlightCurrentLine())
+	  codeEdit.addEventListener('cut', editorCut)
 	}
 
 	function scrollEditor() {
@@ -356,6 +358,7 @@
 
 	function keyDown(ev) {
 	  if (/^tab$/i.test(ev.key)) tabKey(ev)
+	  else if (codeEdit.selectionEnd - codeEdit.selectionStart) setTimeout(1, () => saveAllLines())
 	}
 
 	function keyUp(ev) {
@@ -400,13 +403,20 @@
 	}
 
 	function editorPaste(ev) {
-	  codeEdit.value = codeEdit.value.replace(/\t/g, '  ')
+	  ev.preventDefault()
+	  let paste = (event.clipboardData || window.clipboardData).getData('text').replace(/\t/g, '  ')
+	  let text = codeEdit.value
+	  let start = codeEdit.selectionStart
+	  let end = codeEdit.selectionEnd
+	  codeEdit.value = text.substring(0, start) + paste + text.substring(end, text.length)
+	  codeEdit.selectionStart = start + paste.length
+	  codeEdit.selectionEnd = start + paste.length
 	  saveAllLines()
 	}
 
 	function refreshCode() {
 	  code.innerText = ''
-	  code.append(...project.files[project.openedFile].map(addLine))
+	  code.append(...codeEdit.value.split(/\n/g).map(addLine))
 	}
 
 	function getCurrentLine() {
@@ -446,7 +456,7 @@
 	}
 
 	function saveAllLines() {
-	  project.files[project.openedFile] = codeEdit.value.split(/\r?\n/g)
+	  project.files[project.openedFile] = codeEdit.value.split(/\n/g)
 	  refreshCode()
 	}
       })()
