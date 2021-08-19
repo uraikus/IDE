@@ -1,5 +1,5 @@
 # Uraikus IDE
-[Try Here](https://ide.patricktrester.com/)
+[Try Here](https://ide.uraik.us/)
 
 This IDE runs as a single .html file. Included is the .proj file to modify the editor itself in the editor.
 
