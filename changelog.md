@@ -4,6 +4,7 @@
 - Auto closed perentheses/squiggle brace.
 - !Remember scroll position and selection of each file.
 - Embed images (non-editable) via file reader readAsDataURL
+- Minify variable names
 
 # V3.1
 - Fixed bug where scrollbars would make code look weird.
