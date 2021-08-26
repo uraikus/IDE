@@ -123,9 +123,11 @@ codeEdit.addEventListener('paste', editorPaste)
 codeEdit.addEventListener('mouseup', () => highlightCurrentLine())
 codeEdit.addEventListener('cut', editorCut)}
 function scrollEditor() {code.scrollTop = codeEdit.scrollTop
-code.scrollLeft = codeEdit.scrollLeft}
+code.scrollLeft = codeEdit.scrollLeft
+code.style.width = codeEdit.clientWidth + 'px'
+code.style.paddingBottom = codeEdit.offsetHeight - codeEdit.clientHeight + 'px'}
 function keyDown(ev) {if (/^tab$/i.test(ev.key)) tabKey(ev)
-else if (codeEdit.selectionEnd - codeEdit.selectionStart) setTimeout(1, () => saveAllLines())}
+else if (codeEdit.selectionEnd - codeEdit.selectionStart) codeEdit.addEventListener('keyup', () => saveAllLines(), {once: true})}
 function keyUp(ev) {if (/^(enter|return)$/i.test(ev.key)) {enterKey(ev); highlightCurrentLine()}
 else if (/^backspace$/i.test(ev.key)) {backspaceKey(ev); highlightCurrentLine()}
 else if (/^delete$/i.test(ev.key)) {deleteKey(ev); highlightCurrentLine()}
@@ -153,13 +155,17 @@ let text = codeEdit.value
 let start = codeEdit.selectionStart
 let end = codeEdit.selectionEnd
 codeEdit.value = text.substring(0, start) + paste + text.substring(end, text.length)
-codeEdit.selectionStart = start + paste.length
-codeEdit.selectionEnd = start + paste.length
+let pasteLines = (paste.match(/\n/g) || []).length
+codeEdit.selectionStart = start + paste.length - 1 * pasteLines
+codeEdit.selectionEnd = start + paste.length - 1 * pasteLines
 saveAllLines()}
 function editorCut(ev) {ev.preventDefault()
-let selection = document.getSelection()
-ev.clipboardData.setData('text/plain', selection.toString())
-selection.deleteFromDocument()
+let text = codeEdit.value
+let start = codeEdit.selectionStart
+let selection = text.substring(start, codeEdit.selectionEnd)
+codeEdit.value = text.substring(0, start) + text.substring(codeEdit.selectionEnd, text.length)
+ev.clipboardData.setData('text/plain', selection)
+codeEdit.selectionStart = codeEdit.selectionEnd = start
 saveAllLines()}
 function refreshCode() {code.innerText = ''
 code.append(...codeEdit.value.split(/\n/g).map(addLine))
