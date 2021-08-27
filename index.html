@@ -1,6 +1,6 @@
-<!doctype html><html><head><title>Code Editor</title><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style file="res/highlight.css">.hljs-comment,.hljs-quote{color:#5c6370;font-style:italic}.hljs-doctag,.hljs-formula,.hljs-keyword{color:#c678dd}.hljs-deletion,.hljs-name,.hljs-section,.hljs-selector-tag,.hljs-subst{color:#e06c75}.hljs-literal{color:#56b6c2}.hljs-addition,.hljs-attribute,.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#98c379}.hljs-attr,.hljs-number,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-pseudo,.hljs-template-variable,.hljs-type,.hljs-variable{color:#d19a66}.hljs-bullet,.hljs-link,.hljs-meta,.hljs-selector-id,.hljs-symbol,.hljs-title{color:#61aeee}.hljs-built_in,.hljs-class .hljs-title,.hljs-title.class_{color:#e6c07b}.hljs-emphasis{font-style:italic}.hljs-strong{font-weight:700}.hljs-link{text-decoration:underline}</style><style file="res/design.css">* {box-sizing: border-box;transition: all .6s;}
+<!doctype html><html><head><title>Uraikus IDE</title><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style file="res/highlight.css">.hljs-comment,.hljs-quote{color:#5c6370;font-style:italic}.hljs-doctag,.hljs-formula,.hljs-keyword{color:#c678dd}.hljs-deletion,.hljs-name,.hljs-section,.hljs-selector-tag,.hljs-subst{color:#e06c75}.hljs-literal{color:#56b6c2}.hljs-addition,.hljs-attribute,.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#98c379}.hljs-attr,.hljs-number,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-pseudo,.hljs-template-variable,.hljs-type,.hljs-variable{color:#d19a66}.hljs-bullet,.hljs-link,.hljs-meta,.hljs-selector-id,.hljs-symbol,.hljs-title{color:#61aeee}.hljs-built_in,.hljs-class .hljs-title,.hljs-title.class_{color:#e6c07b}.hljs-emphasis{font-style:italic}.hljs-strong{font-weight:700}.hljs-link{text-decoration:underline}</style><style file="res/design.css">* {box-sizing: border-box;transition: all .6s;}
 body {background: #2e2e2e;color: white;margin: 0;}
-h1 {text-align: center;padding: 5px;margin: 0;}.button {display: inline-block;margin: 3px;padding: 3px;cursor: pointer;border-radius: 5px;box-shadow: 0 0 4px black;background-color: black;color: white;}.button:hover {background-color: white;color: black;}.line {counter-increment: line;outline: none;padding: 0;}.line::before {display: inline-block;content: counter(line) ": ";width: 30px;background-color: black;text-align: right;margin-right: 3px;}.line[data-highlight] {background-color: #6e6e6e;}
+h1 {text-align: center;padding: 5px;margin: 0;}.button {display: inline-block;margin: 3px;padding: 3px;cursor: pointer;border-radius: 5px;box-shadow: 0 0 4px black;background-color: black;color: white;}.button:hover {background-color: white;color: black;}.line {counter-increment: line;outline: none;padding: 0;}.line::before {display: inline-block;content: counter(line) ": ";width: 30px;background-color: black;text-align: right;margin-right: 3px;}.line[data-highlight] {background-color: #6e6e6e;}.image {display: inline-block;width: 200px;padding: 4px;background-color: black;border: 1px solid white;border-radius: 5px;box-shadow: 0 0 4px black;vertical-align: top;text-align: center;}.image input[type="text"] {width: 100%;}.image input[type="button"] {cursor: pointer;width: 100px;}.image img {width: 100%;height: 200px;}
 #toolbar {background-color: #1a1a1a;display: flex;height: 30px;}
 #file-tools, #project-controls {background-color: #1a1a1a;width: 125px;overflow: hidden;height: 25px;text-align: center;padding-top: 5px;border-radius: 5px;z-index: 1;}
 #file-tools .button, #project-controls .button {display: block;}
@@ -10,11 +10,11 @@ h1 {text-align: center;padding: 5px;margin: 0;}.button {display: inline-block;ma
 #code-edit {resize: none;color: rgb(0, 0, 0, 0);caret-color: white;background: none;padding: 0 0 0 33px;}
 #console, #file-picker {height: 0;z-index: 2;background-color: #171717;}
 #unread {background-color: red;border-radius: 50%;padding: 2px;display: none;text-shadow: 0 0 3px black;position: absolute;font-size: x-small}
-#project-name {font-size: large;padding: 5px;}</style></head><body file="res/body.html"><div id="toolbar"><div id="project-controls">
+#project-name {font-size: large;padding: 5px;}</style><link rel="icon" file="favicon.png" href="data:image/png;base64,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"></head><body file="res/body.html"><div id="toolbar"><div id="project-controls">
 Project...
 <div class="button" id="save-project" style="display: none;" onclick="saveProject()">Save Project</div><div class="button" id="export-project" style="display: none;" onclick="exportProject()">Export Project</div><div class="button" onclick="if (verifyActive()) this.nextElementSibling.click()">Load Project</div><input type="file" id="file" hidden="" onchange="startFileReader(this)" accept=".proj"><div class="button" onclick="if (verifyActive()) newProject()">New Project</div></div><div id="file-tools" style="display: none;">
 Files...
-<div class="button" onclick="newProjectFile()">New File</div><div class="button" onclick="openProjectFilePane()">Open File</div><div class="button" id="rename-file" onclick="renameProjectFile()">Rename File</div><div class="button" id="delete-file" onclick="deleteProjectFile()">Delete File</div></div><div class="button" onclick="showConsole()">Console<span id="unread"></span></div><div class="button" id="preview-button" style="display: none" onclick="preview()">Preview</div><div style="padding: 6px 0 0 5px;">Current File: <span id="current-file"></span></div><div style="flex-grow: 1;"></div><div id="project-name" oninput="if (this.innerText) project.name = this.innerText"></div></div><div id="code"></div><textarea id="code-edit" spellcheck="false" readonly=""></textarea><div id="file-picker"></div><div id="console"><h1>Console <div class="button" onclick="closeConsole()">Close</div></h1></div><script file="scripts/interface.js">window.project = {}
+<div class="button" onclick="newProjectFile()">New File</div><div class="button" onclick="openProjectFilePane()">Open File</div><div class="button" id="rename-file" onclick="renameProjectFile()">Rename File</div><div class="button" id="delete-file" onclick="deleteProjectFile()">Delete File</div><div class="button" onclick="openProjectImagePane()">Images...</div></div><div class="button" onclick="showConsole()">Console<span id="unread"></span></div><div class="button" id="preview-button" style="display: none" onclick="preview()">Preview</div><div style="padding: 6px 0 0 5px;">Current File: <span id="current-file"></span></div><div style="flex-grow: 1;"></div><div id="project-name" oninput="if (this.innerText) project.name = this.innerText"></div></div><div id="code"></div><textarea id="code-edit" spellcheck="false" readonly=""></textarea><div id="file-picker"></div><div id="console"><h1>Console <div class="button" onclick="closeConsole()">Close</div></h1></div><script file="scripts/interface.js">window.project = {}
 addEventListener('error', errorHandler)
 addEventListener('message', e => {errorHandler(e.data)})
 addEventListener('load', load)
@@ -27,7 +27,9 @@ if (verifyActive()) document.querySelector('input[type="file"]').click()} else i
 if (verifyActive()) newProject()}}
 function load() {let dropDowns = document.querySelectorAll('#file-tools, #project-controls')
 for (let x = 0; x < dropDowns.length; x++) {dropDowns[x].onmouseenter = () => dropDowns[x].style.height = dropDowns[x].scrollHeight + 'px'
-dropDowns[x].onmouseleave = () => dropDowns[x].style.height = ''}}
+dropDowns[x].onmouseleave = () => dropDowns[x].style.height = ''}
+let buttons = document.querySelectorAll('.button')
+for (let x = 0; x < buttons.length; x++) {buttons[x].addEventListener('mousedown', e => e.preventDefault())}}
 function verifyActive() {return !project.loaded || confirm('Are you sure you want to close you current project?')}
 function errorHandler(ev) {let unread = document.getElementById('unread')
 unread.innerText = parseInt(unread.innerText || 0) + 1
@@ -45,38 +47,39 @@ let unread = document.getElementById('unread')
 unread.style.display = ''
 unread.innerText = ''}
 function closeConsole() {document.getElementById('console').style.height = ''}
-function compile() {let doc = new DOMParser().parseFromString(project.files['index.html'].join('\n'), 'text/html')
+function compile() {let lines = (project.files['index.html'].lines || project.files['index.html']).join('\n')
+let doc = new DOMParser().parseFromString(lines, 'text/html')
 let str = ''
 compileElements(doc)
 function compileElements(elem) {let res = elem.querySelectorAll('[file]')
 for (let x = 0; x < res.length; x++) {let fileName = res[x].getAttribute('file')
-if (project.files[fileName]) {res[x].innerHTML = project.files[res[x].getAttribute('file')].join('\n')
-if (/.html$/.test(fileName)) compileElements(res[x])}}}
+if (project.files[fileName]) {let lines = (project.files[res[x].getAttribute('file')].lines || project.files[res[x].getAttribute('file')]).join('\n')
+res[x].innerHTML = lines
+if (/.html$/.test(fileName)) compileElements(res[x])} else if (project.images[fileName]) {if (/img/i.test(res[x].tagName)) res[x].setAttribute('src', project.images[fileName])
+else if (/link/i.test(res[x].tagName)) res[x].setAttribute('href', project.images[fileName])}}}
 return URL.createObjectURL(new Blob([minify('<!doctype html>\n' + doc.documentElement.outerHTML)], {type: 'text/html'}))}
 function minify(str) {return str.replace(/\r/g, '').replace(/\n[ \t]+/g, '\n').replace(/\n+/g, '\n').replace(/\>\n\</g, '><').replace(/\n\./g, '.').replace(/\{\n/g, '{').replace(/\n\}/g, '}').replace(/,\n/g, ',').replace(/\n;/g, ';').replace(/;\n/g, ';')}
 function preview() {let url = compile()
 window.open(url, 'preview')}</script><script file="scripts/project.js">function newProject() {let name = prompt('Project Name:', '')
 if (!name) return false
-loadProject({loaded: true,name: name,openedFile: 'index.html',files: {'index.html': [
+loadProject({name: name,openedFile: 'index.html',images: {},files: {'index.html': {scrollTop: 0,scrollLeft: 0,selectionStart: 0,selectionEnd: 0,lines: [
 '<!doctype html>','<html>','  <head>','    <title>' + name + '</title>','    <meta http-equiv="X-UA-Compatible" content="IE=edge">','    <meta charset="UTF-8">','    <meta name="viewport" content="width=device-width, initial-scale=1.0">','    <style file="design.css"></style>','    <script file="start.js"></' + 'script>','  </head>','  <body file="body.html"></body>','</html>'
-],'design.css': [
+]},'design.css': {scrollTop: 0,scrollLeft: 0,selectionStart: 0,selectionEnd: 0,lines:[
 '* {', '  box-sizing: border-box;','  transition: all .6s;', '}'
-],'start.js': [
+]},'start.js': {scrollTop: 0,scrollLeft: 0,selectionStart: 0,selectionEnd: 0,lines:[
 "addEventListener('error', e => {if (opener) opener.postMessage({lineno: e.lineno, colno: e.colno, message: e.message}, '*')})", "addEventListener('load', load)", '', 'function load() {', '  ', '}'
-],'body.html': [
+]},'body.html': {scrollTop: 0,scrollLeft: 0,selectionStart: 0,selectionEnd: 0,lines:[
 '<h1>Hello World!</h1>'
-]}})}
+]}}})}
 function saveProject() {let blob = new Blob([JSON.stringify(project)], {type: 'text/json'})
 let href = URL.createObjectURL(blob)
-let a = document.createElement('a')
-a.href = href
-a.download = project.name + '.proj'
+downloadFile(project.name + '.proj', href)}
+function exportProject() {downloadFile(project.name + '.html', compile())}
+function downloadFile(name, data) {let a = document.createElement('a')
+a.href = data
+a.download = name
 a.click()}
-function exportProject() {let a = document.createElement('a')
-a.href = compile()
-a.download = project.name + '.html'
-a.click()}
-function loadProject(p) {if (!project.loaded) initializeEditor()
+function loadProject(p) {if (!project.name) initializeEditor()
 project = p
 let pn = document.getElementById('project-name')
 pn.innerText = p.name
@@ -86,25 +89,67 @@ document.getElementById('save-project').style.display = ''
 document.getElementById('export-project').style.display = ''
 document.getElementById('preview-button').style.display = ''
 document.getElementById('file-tools').style.display = ''
-document.title = 'Code Editor: ' + p.name}
+document.title = 'Uraikus IDE - ' + p.name}
 function openProjectFilePane() {let fp = document.getElementById('file-picker')
 fp.style.height = '100%'
-fp.innerHTML = '<h1>Files <div class="button" onclick="this.parentElement.parentElement.style.height = \'\'">Close</div></h1>'
+fp.innerHTML = '<h1>Files <div class="button" onclick="this.parentElement.parentElement.style.height = \'\'" onmousedown="event.preventDefault()">Close</div></h1>'
 Object.keys(project.files).sort().forEach(file => {let div = document.createElement('div')
 div.innerText = file
-div.onclick = () => {openProjectFile(file); fp.style.height = '';}
+div.addEventListener('mousedown', e => e.preventDefault())
+div.onclick = ev => {openProjectFile(file); fp.style.height = '';}
 fp.append(div)})}
+function openProjectImagePane() {let fp = document.getElementById('file-picker')
+fp.style.height = '100%'
+fp.innerHTML = `<h1>Files <div class="button" onclick="this.parentElement.parentElement.style.height = ''" onmousedown="event.preventDefault()">Close</div></h1><b>Upload Image:</b> <input type="file" accept=".jpg,.jpeg,.png,.svg,.tiff,.gif"><hr>`
+let upload = fp.querySelector('input[type="file"]')
+upload.onchange = function() {if (!upload.value || !upload.files[0]) return false
+if (!project.images) project.images = {}
+let fr = new FileReader()
+fr.addEventListener('load', function() {project.images[upload.files[0].name] = fr.result
+addImage(upload.files[0].name)
+upload.value = ''}, false)
+fr.readAsDataURL(upload.files[0])}
+Object.keys(project.images || {}).sort().forEach(addImage)
+function addImage(img) {let div = fp.querySelector(`div[data-name="${img}"]`)
+if (!div) div = document.createElement('div')
+div.dataset.name = img
+div.className = 'image'
+div.innerHTML = `<img src='${project.images[img]}'><input type="text" readOnly value="${img}"><input type="button" value="Download"><input type="button" value="Delete"><input type="button" value="Insert">`
+div.querySelector('input[value="Download"]').onmousedown = e => {e.preventDefault()
+downloadFile(img, project.images[img])}
+div.querySelector('input[value="Delete"]').onmousedown = e => {e.preventDefault()
+if (confirm(`Are you sure you want to delete '${img}'?`)) {div.remove()
+delete project.images[img]}}
+div.querySelector('input[value="Insert"]').onclick = e => {e.preventDefault()
+let start = codeEdit.selectionStart
+let end = codeEdit.selectionEnd
+let t = codeEdit.value
+codeEdit.value = t.substring(0, start) + img + t.substring(end, t.length)
+codeEdit.selectionStart = codeEdit.selectionEnd = start
+saveAllLines()
+fp.style.height = ''}
+fp.append(div)}}
 function openProjectFile(fileName) {project.openedFile = fileName
+let file = project.files[fileName]
+let content = Array.isArray(file) ? file.join('\n') : file.lines.join('\n')
 document.getElementById('current-file').innerText = fileName
 document.getElementById('rename-file').style.display = 'index.html' === fileName ? 'none' : ''
 document.getElementById('delete-file').style.display = 'index.html' === fileName ? 'none' : ''
-document.getElementById('code-edit').value = project.files[fileName].join('\n')
+codeEdit.value = content
+codeEdit.scrollTop = file.scrollTop
+codeEdit.scrollLeft = file.scrollLeft
+codeEdit.selectionStart = file.selectionStart
+codeEdit.selectionEnd = file.selectionEnd
 code.className = 'language-' + fileName.split('.').pop()
 refreshCode()}
+function saveProjectFile(data) {if (typeof data !== 'object') throw 'Save data must be an object!'
+let file = project.files[project.openedFile]
+if (Array.isArray(file)) file = project.files[project.openedFile] = {lines: file}
+Object.assign(file, data)}
 function newProjectFile() {let name = prompt('File name:', '')
 if (!name) return false
 if (project.files[name]) throw 'File name is invalid or it already exists.'
-project.files[name] = ['']
+project.files[name] = {lines: [''], scrollLeft: 0, scrollTop: 0, selectionStart: 0, selectionEnd: 0}
 openProjectFile(name)}
 function renameProjectFile() {let newName = prompt('Enter new name for file:', project.openedFile)
 if (!newName) return false
@@ -120,19 +165,21 @@ codeEdit.addEventListener('scroll', scrollEditor)
 codeEdit.addEventListener('keydown', keyDown)
 codeEdit.addEventListener('keyup', keyUp)
 codeEdit.addEventListener('paste', editorPaste)
-codeEdit.addEventListener('mouseup', () => highlightCurrentLine())
-codeEdit.addEventListener('cut', editorCut)}
+codeEdit.addEventListener('cut', editorCut)
+codeEdit.addEventListener('mouseup', mouseUp)}
 function scrollEditor() {code.scrollTop = codeEdit.scrollTop
 code.scrollLeft = codeEdit.scrollLeft
 code.style.width = codeEdit.clientWidth + 'px'
-code.style.paddingBottom = codeEdit.offsetHeight - codeEdit.clientHeight + 'px'}
+code.style.paddingBottom = codeEdit.offsetHeight - codeEdit.clientHeight + 'px'
+saveProjectFile({scrollTop: codeEdit.scrollTop, scrollLeft: codeEdit.scrollLeft})}
 function keyDown(ev) {if (/^tab$/i.test(ev.key)) tabKey(ev)
+else if (/^[[{('"`)}\]]$/.test(ev.key)) wrapAroundSelection(ev)
 else if (codeEdit.selectionEnd - codeEdit.selectionStart) codeEdit.addEventListener('keyup', () => saveAllLines(), {once: true})}
 function keyUp(ev) {if (/^(enter|return)$/i.test(ev.key)) {enterKey(ev); highlightCurrentLine()}
 else if (/^backspace$/i.test(ev.key)) {backspaceKey(ev); highlightCurrentLine()}
 else if (/^delete$/i.test(ev.key)) {deleteKey(ev); highlightCurrentLine()}
 else if ([37,38,39,40].includes(ev.keyCode)) highlightCurrentLine()
-else refreshCurrentLine(ev)}
+else saveAllLines()}
 function tabKey(ev) {ev.preventDefault()
 let line = getCurrentLine()
 let text = codeEdit.value
@@ -141,9 +188,24 @@ codeEdit.selectionStart = codeEdit.selectionEnd = line.caret - 2
 refreshCurrentLine()} else {codeEdit.value = text.substring(0, line.start) + '  ' + text.substring(line.start, text.length)
 codeEdit.selectionStart = codeEdit.selectionEnd = line.caret + 2
 refreshCurrentLine()}}
+function wrapAroundSelection(ev) {let index = {'{': '}','[': ']','(': ')','`': '`',"'": "'",'"': '"'}
+let k = ev.key
+let t = codeEdit.value
+let start = codeEdit.selectionStart
+let end = codeEdit.selectionEnd
+if (start === end && t[start] === k) {ev.preventDefault()
+codeEdit.selectionStart = codeEdit.selectionEnd = start + 1
+return saveAllLines()}
+else if (/[)}\]]/.test(k)) return true
+else if (!index[k]) throw 'Incorrect key code.'
+ev.preventDefault()
+codeEdit.value = t.substring(0, start) + k + t.substring(start, end) + index[k] + t.substring(end, t.length + 2)
+codeEdit.selectionStart = start + 1
+codeEdit.selectionEnd = end + 1
+saveAllLines()}
 function enterKey(ev) {let line = getCurrentLine()
 let text = codeEdit.value
-let query = project.files[project.openedFile][line.index - 1].match('^ +')
+let query = project.files[project.openedFile].lines[line.index - 1].match('^ +')
 if (query) {codeEdit.value = text.substring(0, line.start) + query[0] + text.substring(line.start, text.length)
 codeEdit.selectionStart = codeEdit.selectionEnd = line.start + query[0].length}
 saveAllLines()}
@@ -167,6 +229,8 @@ codeEdit.value = text.substring(0, start) + text.substring(codeEdit.selectionEnd
 ev.clipboardData.setData('text/plain', selection)
 codeEdit.selectionStart = codeEdit.selectionEnd = start
 saveAllLines()}
+function mouseUp() {highlightCurrentLine()
+saveProjectFile({selectionStart: codeEdit.selectionStart, selectionEnd: codeEdit.selectionEnd})}
 function refreshCode() {code.innerText = ''
 code.append(...codeEdit.value.split(/\n/g).map(addLine))
 scrollEditor()}
@@ -179,9 +243,6 @@ lineEnd = lineStart + map[x] + 1
 if (caret >= lineStart && caret < lineEnd) {return {start: lineStart, end: lineEnd, caret: caret, index: x, text: codeEdit.value.substring(lineStart, lineEnd)}}
 counter = lineEnd}
 throw `Caret could not be found: caret: ${caret}, counter: ${counter}`}
-function refreshCurrentLine() {let line = getCurrentLine()
-project.files[project.openedFile][line.index] = line.text
-code.children[line.index].innerHTML = hljs.highlightAuto(line.text).value}
 function highlightCurrentLine(line) {line = line || getCurrentLine()
 let prev = document.querySelector('.line[data-highlight]')
 if (prev) delete prev.dataset.highlight
@@ -190,7 +251,7 @@ function addLine(text, index) {let div = document.createElement('div')
 div.className = 'line'
 div.innerHTML = hljs.highlightAuto(text).value
 return div}
-function saveAllLines() {project.files[project.openedFile] = codeEdit.value.split(/\n/g)
+function saveAllLines() {saveProjectFile({lines: codeEdit.value.split(/\n/g)})
 refreshCode()}</script><script file="scripts/highlight.js">/*!
 Highlight.js v11.0.1 (git: 1cf31f015d)
 (c) 2006-2021 Ivan Sagalaev and other contributors
