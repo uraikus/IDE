@@ -14,3 +14,12 @@ Though you can still load external resources as you normally would.
 <!-- Example HTML Virtual File -->
 <div file="widget.html"></div>
 ```
+To load a JSX file, use the .jsx extension. If you are loading an already transpiled file, you can use the attribute data-transform="false" to prevent Babel from re-optimizing the code on compilation.
+```html
+<!-- load a React JSX file -->
+<script file="components/header.jsx"></script>
+
+<!-- load embedded React library files without slowing down the compilation -->
+<script data-transform="false" file="scripts/react.js"></script>
+<script data-transform="false" file="scripts/react-dom.js"></script>
+```
