@@ -2,6 +2,8 @@
 - Ctrl + D function
 - Auto closed tag
 - Minify variable names
+# V3.4
+- Added ctrl + space file search
 # V3.3
 - Babel integrated
 - React JSX support
